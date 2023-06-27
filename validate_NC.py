@@ -125,7 +125,7 @@ def compute_ETF(W):
     WWT = torch.mm(W, W.T)
     WWT /= torch.norm(WWT, p='fro')
 
-    sub = (torch.eye(K) - 1 / K * torch.ones((K, K))).cuda() / pow(K - 1, 0.5)
+    sub = (torch.eye(K) - 1 / K * torch.ones((K, K))).to(W.device) / pow(K - 1, 0.5)
     ETF_metric = torch.norm(WWT - sub, p='fro')
     return ETF_metric.detach().cpu().numpy().item()
 
@@ -136,16 +136,16 @@ def compute_W_H_relation(W, mu_c_dict, mu_G):
     for i in range(K):
         H[:, i] = mu_c_dict[i] - mu_G
 
-    WH = torch.mm(W, H.cuda())
+    WH = torch.mm(W, H.to(W.device))
     WH /= torch.norm(WH, p='fro')
-    sub = 1 / pow(K - 1, 0.5) * (torch.eye(K) - 1 / K * torch.ones((K, K))).cuda()
+    sub = 1 / pow(K - 1, 0.5) * (torch.eye(K) - 1 / K * torch.ones((K, K))).to(W.device)
 
     res = torch.norm(WH - sub, p='fro')
     return res.detach().cpu().numpy().item(), H
 
 
 def compute_Wh_b_relation(W, mu_G, b):
-    Wh = torch.mv(W, mu_G.cuda())
+    Wh = torch.mv(W, mu_G.to(W.device))
     res_b = torch.norm(Wh + b, p='fro')
     return res_b.detach().cpu().numpy().item()
 
