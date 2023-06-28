@@ -34,7 +34,8 @@ def parse_train_args():
     parser.add_argument('--force', action='store_true', help='force to override the given uid')
 
     # Learning Options
-    parser.add_argument('--epochs', type=int, default=200, help='Max Epochs')
+    parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
+    parser.add_argument('--finetune_epochs', type=int, default=50, help='Finetune Epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--loss', type=str, default='CrossEntropy', help='loss function configuration')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
@@ -54,7 +55,7 @@ def parse_train_args():
     parser.add_argument('--ghost_batch', type=int, dest='ghost_batch', default=128, help='ghost size for LBFGS variants')
 
     # Specifying the preference weight model
-    parser.add_argument('--preference_type', type=str, default=None, help='preference weight type, can be linear, quadratic, cubic, exp, sqrt or log')
+    parser.add_argument('--preference_type', type=str, default='uniform', help='preference weight type, can be linear, quadratic, cubic, exp, sqrt or log')
 
     args = parser.parse_args()
 
@@ -126,8 +127,7 @@ def parse_eval_args():
     parser.add_argument('--load_path', type=str, default=None)
 
     # Learning Options
-    parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
-    parser.add_argument('--finetune_epochs', type=int, default=50, help='Pretrain Epochs')
+    parser.add_argument('--epochs', type=int, default=100, help='Max Eval Epochs, this should equal to sum of pretrain_epochs and finetune_epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
 

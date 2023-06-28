@@ -31,7 +31,7 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
     top1 = AverageMeter()
     top5 = AverageMeter()
 
-    print_and_save('\nTraining Epoch: [%d | %d] LR: %f' % (epoch_id + 1, args.epochs, scheduler.get_last_lr()[-1]), logfile)
+    print_and_save('\nTraining Epoch: [%d | %d] LR: %f' % (epoch_id + 1, args.pretrain_epochs + args.finetune_epochs, scheduler.get_last_lr()[-1]), logfile)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
 
         inputs, targets = inputs.to(args.device), targets.to(args.device)
@@ -108,7 +108,7 @@ def train(args, model, trainloader):
     criterion = make_criterion(args, preference_weight = get_preferemce_weight(args))
     for epoch_id in range(args.finetune_epochs):
 
-        trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler, logfile)
+        trainer(args, model, trainloader, epoch_id + args.pretrain_epochs, criterion, optimizer, scheduler, logfile)
         torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
     
 
