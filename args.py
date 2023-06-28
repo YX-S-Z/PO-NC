@@ -46,11 +46,15 @@ def parse_train_args():
     parser.add_argument('--gamma', type=float, default=0.1, help='learning rate decay factor for step decay')
     parser.add_argument('--optimizer', default='SGD', help='optimizer to use')
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='weight decay')
+
     # The following two should be specified when testing adding wd on Features
     parser.add_argument('--sep_decay', action='store_true', help='whether to separate weight decay to last feature and last weights')
     parser.add_argument('--feature_decay_rate', type=float, default=1e-4, help='weight decay for last layer feature')
     parser.add_argument('--history_size', type=int, default=10, help='history size for LBFGS')
     parser.add_argument('--ghost_batch', type=int, dest='ghost_batch', default=128, help='ghost size for LBFGS variants')
+
+    # Specifying the preference weight model
+    parser.add_argument('--preference_type', type=str, default=None, help='preference weight type, can be linear, quadratic, cubic, exp, sqrt or log')
 
     args = parser.parse_args()
 
@@ -59,9 +63,9 @@ def parse_train_args():
         print("revise the unique id to a random number " + str(unique_id))
         args.uid = unique_id
         timestamp = datetime.datetime.now().strftime("%a-%b-%d-%H-%M")
-        save_path = './model_weights/' + args.dataset + '-' + args.uid + '-' + timestamp
+        save_path = './model_weights/' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
     else:
-        save_path = './model_weights/' + args.dataset + '-' + str(args.uid)
+        save_path = './model_weights/' + args.dataset + '-' + args.preference_type + '-' + str(args.uid)
 
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)
@@ -70,7 +74,7 @@ def parse_train_args():
             raise ("please use another uid ")
         else:
             print("override this uid" + args.uid)
-            for m in range(1, 10):
+            for m in range(1, 25):
                 if not os.path.exists(save_path + "/log.txt.bk" + str(m)):
                     shutil.copy(save_path + "/log.txt", save_path + "/log.txt.bk" + str(m))
                     shutil.copy(save_path + "/args.txt", save_path + "/args.txt.bk" + str(m))
@@ -122,7 +126,8 @@ def parse_eval_args():
     parser.add_argument('--load_path', type=str, default=None)
 
     # Learning Options
-    parser.add_argument('--epochs', type=int, default=200, help='Max Epochs')
+    parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
+    parser.add_argument('--finetune_epochs', type=int, default=50, help='Pretrain Epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
 

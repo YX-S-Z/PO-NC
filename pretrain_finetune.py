@@ -35,8 +35,6 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
     for batch_idx, (inputs, targets) in enumerate(trainloader):
 
         inputs, targets = inputs.to(args.device), targets.to(args.device)
-        import IPython
-        IPython.embed()
         model.train()
         outputs = model(inputs)
         
@@ -64,22 +62,55 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
 
     scheduler.step()
 
-
+def get_preferemce_weight(args):
+    if args.dataset == "mnist" or "cifar10":
+        if args.preference_type == "linear":
+            # return a linear weight of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            return torch.tensor(range(10)) + 1
+        elif args.preference_type == "quadratic":
+            # return a quadratic weight of [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            return (torch.tensor(range(10))+1)**2
+        elif args.preference_type == "cubic":
+            # return a quadratic weight of [1, 8, 27, 64, 125, 216, 343, 512, 729, 1000]
+            return (torch.tensor(range(10))+1)**2
+        elif args.preference_type == "exp":
+            # return a exponential weight of [exp(1), exp(2), exp(3), exp(4), exp(5), exp(6), exp(7), exp(8), exp(9), exp(10)]
+            return torch.exp(torch.tensor(range(10)))
+        elif args.preference_type == "sqrt":
+            # return a exponential weight of [sqrt(1), sqrt(2), sqrt(3), sqrt(4), sqrt(5), sqrt(6), sqrt(7), sqrt(8), sqrt(9), sqrt(10)]
+            return torch.sqrt(torch.tensor(range(10))+1)
+        elif args.preference_type == "log":
+            # return a exponential weight of [log(1), log(2), log(3), log(4), log(5), log(6), log(7), log(8), log(9), log(10)] + 1
+            return torch.log(torch.tensor(range(10))+1)+1
+        else:
+            return None
+    else:
+        sys.exit("Not implemented yet!")
 
 def train(args, model, trainloader):
-    ## SZ: Jun 27, Note to self, need to write a script for preference_weight.
-    criterion = make_criterion(args, preference_weight = preference_weight)
+
+    criterion = make_criterion(args)
     optimizer = make_optimizer(args, model)
     scheduler = make_scheduler(args, optimizer)
 
     logfile = open('%s/train_log.txt' % (args.save_path), 'w')
 
     print_and_save('# of model parameters: ' + str(count_network_parameters(model)), logfile)
-    print_and_save('--------------------- Training -------------------------------', logfile)
-    for epoch_id in range(args.epochs):
+    print_and_save('--------------------- Start Pretraining -------------------------------', logfile)
+    for epoch_id in range(args.pretrain_epochs):
 
         trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler, logfile)
         torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
+
+    print_and_save('--------------------- Start Finetuning -------------------------------', logfile)
+    
+    # Set the new critierion for fine-tuning
+    criterion = make_criterion(args, preference_weight = get_preferemce_weight(args))
+    for epoch_id in range(args.finetune_epochs):
+
+        trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler, logfile)
+        torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
+    
 
     logfile.close()
 
