@@ -67,6 +67,25 @@ def make_scheduler(args, my_optimizer):
 
     return scheduler
 
+def make_ft_scheduler(args, my_optimizer):
+    if args.decay_type == 'step':
+        scheduler = lrs.StepLR(
+            my_optimizer,
+            step_size=args.ft_patience,
+            gamma=args.gamma
+        )
+    elif args.decay_type.find('step') >= 0:
+        milestones = args.decay_type.split('_')
+        milestones.pop(0)
+        milestones = list(map(lambda x: int(x), milestones))
+        scheduler = lrs.MultiStepLR(
+            my_optimizer,
+            milestones=milestones,
+            gamma=args.gamma
+        )
+
+    return scheduler
+
 
 def make_criterion(args, preference_weight = None):
     if args.loss == 'CrossEntropy':
