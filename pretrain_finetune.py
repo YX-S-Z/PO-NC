@@ -64,26 +64,17 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
 
 def get_preferemce_weight(args):
     if args.dataset == "mnist" or "cifar10":
-        if args.preference_type == "linear":
-            # return a linear weight of [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-            return (torch.tensor(range(10)) + 1.0).to(args.device)
-        elif args.preference_type == "quadratic":
-            # return a quadratic weight of [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
-            return ((torch.tensor(range(10))+1.0)**2).to(args.device)
-        elif args.preference_type == "cubic":
-            # return a quadratic weight of [1, 8, 27, 64, 125, 216, 343, 512, 729, 1000]
-            return ((torch.tensor(range(10))+1.0)**2).to(args.device)
-        elif args.preference_type == "exp":
-            # return a exponential weight of [exp(1), exp(2), exp(3), exp(4), exp(5), exp(6), exp(7), exp(8), exp(9), exp(10)]
-            return (torch.exp(torch.tensor(range(10)))).to(args.device)
-        elif args.preference_type == "sqrt":
-            # return a exponential weight of [sqrt(1), sqrt(2), sqrt(3), sqrt(4), sqrt(5), sqrt(6), sqrt(7), sqrt(8), sqrt(9), sqrt(10)]
-            return (torch.sqrt(torch.tensor(range(10))+1.0)).to(args.device)
+        ft_class_num = args.ft_class_num
+        weight = torch.zeros(10)
+        if args.preference_type == "exp":
+            # return a exponential weight of [0, 0, 0, ..., exp(1), exp(2), ..., exp(x)]
+            weight[10-ft_class_num:] = torch.exp(torch.tensor(range(ft_class_num)))
         elif args.preference_type == "log":
-            # return a exponential weight of [log(1), log(2), log(3), log(4), log(5), log(6), log(7), log(8), log(9), log(10)] + 1
-            return (torch.log(torch.tensor(range(10))+1)+1.0).to(args.device)
+            # return a exponential weight of [0, 0, 0, ..., 1, log(2)+1, ..., log(x)+1]
+            weight[10-ft_class_num:] = torch.log(torch.tensor(range(ft_class_num))+1)+1.0
         else:
-            return None
+            weight[10-ft_class_num:] = torch.ones(ft_class_num)    
+        return weight.to(args.device)
     else:
         sys.exit("Not implemented yet!")
 

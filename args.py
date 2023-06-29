@@ -35,14 +35,15 @@ def parse_train_args():
 
     # Learning Options
     parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
-    parser.add_argument('--finetune_epochs', type=int, default=50, help='Finetune Epochs')
+    parser.add_argument('--finetune_epochs', type=int, default=100, help='Finetune Epochs')
+    parser.add_argument('--ft_class_num', type=int, default=5, help='Finetune Class Number, should be less than 10, = 10 means finetune on all classes')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--loss', type=str, default='CrossEntropy', help='loss function configuration')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
 
     # Optimization specifications
     parser.add_argument('--lr', type=float, default=0.1, help='learning rate')
-    parser.add_argument('--patience', type=int, default=40, help='learning rate decay per N epochs')
+    parser.add_argument('--patience', type=int, default=20, help='learning rate decay per N epochs')
     parser.add_argument('--decay_type', type=str, default='step', help='learning rate decay type')
     parser.add_argument('--gamma', type=float, default=0.1, help='learning rate decay factor for step decay')
     parser.add_argument('--optimizer', default='SGD', help='optimizer to use')
@@ -55,7 +56,7 @@ def parse_train_args():
     parser.add_argument('--ghost_batch', type=int, dest='ghost_batch', default=128, help='ghost size for LBFGS variants')
 
     # Specifying the preference weight model
-    parser.add_argument('--preference_type', type=str, default='uniform', help='preference weight type, can be linear, quadratic, cubic, exp, sqrt or log')
+    parser.add_argument('--preference_type', type=str, default='uniform', help='preference weight type, can be quadratic, exp, or log')
 
     args = parser.parse_args()
 
@@ -64,9 +65,9 @@ def parse_train_args():
         print("revise the unique id to a random number " + str(unique_id))
         args.uid = unique_id
         timestamp = datetime.datetime.now().strftime("%a-%b-%d-%H-%M")
-        save_path = './model_weights/' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
+        save_path = './model_weights/' + str(args.ft_class_num) + '-' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
     else:
-        save_path = './model_weights/' + args.dataset + '-' + args.preference_type + '-' + str(args.uid)
+        save_path = './model_weights/' + str(args.ft_class_num) + '-' + args.dataset + '-' + args.preference_type + '-'  + str(args.uid)
 
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)
@@ -127,7 +128,7 @@ def parse_eval_args():
     parser.add_argument('--load_path', type=str, default=None)
 
     # Learning Options
-    parser.add_argument('--epochs', type=int, default=100, help='Max Eval Epochs, this should equal to sum of pretrain_epochs and finetune_epochs')
+    parser.add_argument('--epochs', type=int, default=150, help='Max Eval Epochs, this should equal to sum of pretrain_epochs and finetune_epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
 
