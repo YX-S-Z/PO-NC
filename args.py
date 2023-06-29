@@ -36,7 +36,7 @@ def parse_train_args():
     # Learning Options
     parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
     parser.add_argument('--finetune_epochs', type=int, default=100, help='Finetune Epochs')
-    parser.add_argument('--ft_scaling', type=int, default=100, help='scaling of the finetuning loss')
+    parser.add_argument('--ft_scaling', type=int, default=10, help='scaling of the finetuning loss')
     parser.add_argument('--ft_class_num', type=int, default=5, help='Finetune Class Number, should be less than 10, = 10 means finetune on all classes')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--loss', type=str, default='CrossEntropy', help='loss function configuration')
