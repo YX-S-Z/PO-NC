@@ -97,6 +97,7 @@ def train(args, model, trainloader):
     
     # Set the new critierion for fine-tuning, including new learning rate
     criterion = make_criterion(args, preference_weight = get_preferemce_weight(args))
+    optimizer = make_optimizer(args, model)
     scheduler = make_ft_scheduler(args, optimizer)
     for epoch_id in range(args.finetune_epochs):
 
