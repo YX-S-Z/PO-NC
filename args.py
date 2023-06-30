@@ -38,6 +38,7 @@ def parse_train_args():
     parser.add_argument('--finetune_epochs', type=int, default=100, help='Finetune Epochs')
     parser.add_argument('--ft_scaling', type=int, default=10, help='scaling of the finetuning loss')
     parser.add_argument('--ft_class_num', type=int, default=5, help='Finetune Class Number, should be less than 10, = 10 means finetune on all classes')
+    parser.add_argument('--ft_ratio', type=float, default=0.5, help='percentage of the finetuned model')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--loss', type=str, default='CrossEntropy', help='loss function configuration')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
@@ -67,9 +68,9 @@ def parse_train_args():
         print("revise the unique id to a random number " + str(unique_id))
         args.uid = unique_id
         timestamp = datetime.datetime.now().strftime("%a-%b-%d-%H-%M")
-        save_path = './model_weights/' + str(args.ft_class_num) + '-' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
+        save_path = './model_weights/' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
     else:
-        save_path = './model_weights/' + str(args.ft_class_num) + '-' + args.dataset + '-' + args.preference_type + '-'  + str(args.uid)
+        save_path = './model_weights/' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-'  + str(args.uid)
 
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)

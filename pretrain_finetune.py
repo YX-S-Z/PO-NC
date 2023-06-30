@@ -2,6 +2,8 @@ import sys
 
 import torch
 
+import copy
+
 import models
 from models.res_adapt import ResNet18_adapt
 from utils import *
@@ -92,6 +94,8 @@ def train(args, model, trainloader):
 
         trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler, logfile)
         torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
+    
+    pretrained_model = copy.deepcopy(model)
 
     print_and_save('--------------------- Start Finetuning -------------------------------', logfile)
     
@@ -102,9 +106,15 @@ def train(args, model, trainloader):
     for epoch_id in range(args.finetune_epochs):
 
         trainer(args, model, trainloader, epoch_id + args.pretrain_epochs, criterion, optimizer, scheduler, logfile)
-        torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + args.pretrain_epochs + 1).zfill(3) + ".pth")
+        # Save the mixed model after each epoch
+        finetuned_model = copy.deepcopy(model)
+        
+        for param_ft, param_pt in zip(finetuned_model.parameters(), pretrained_model.parameters()):
+            interpolated_param = args.ft_ratio * param_ft + (1 - args.ft_ratio) * param_pt
+            param_ft.data.copy_(interpolated_param.data)
+        
+        torch.save(finetuned_model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + args.pretrain_epochs + 1).zfill(3) + ".pth")
     
-
     logfile.close()
 
 
