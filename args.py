@@ -45,7 +45,7 @@ def parse_train_args():
 
     # Optimization specifications
     parser.add_argument('--lr', type=float, default=0.1, help='learning rate')
-    parser.add_argument('--patience', type=int, default=20, help='learning rate decay per N epochs')
+    parser.add_argument('--patience', type=int, default=30, help='learning rate decay per N epochs')
     parser.add_argument('--ft_patience', type=int, default=50, help='learning rate decay per N epochs for fine-tuning')
     parser.add_argument('--decay_type', type=str, default='step', help='learning rate decay type')
     parser.add_argument('--gamma', type=float, default=0.1, help='learning rate decay factor for step decay')
