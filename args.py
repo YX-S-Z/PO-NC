@@ -34,9 +34,10 @@ def parse_train_args():
     parser.add_argument('--force', action='store_true', help='force to override the given uid')
 
     # Learning Options
-    parser.add_argument('--pretrain_epochs', type=int, default=50, help='Pretrain Epochs')
-    parser.add_argument('--finetune_epochs', type=int, default=100, help='Finetune Epochs')
-    parser.add_argument('--ft_scaling', type=int, default=10, help='scaling of the finetuning loss')
+    parser.add_argument('--pretrain_epochs', type=int, default=60, help='Pretrain Epochs')
+    parser.add_argument('--finetune_epochs', type=int, default=140, help='Finetune Epochs')
+    parser.add_argument('--pt_class_num', type=int, default=5, help='Pretrained Class Number, should be less than 10, = 10 means pretrain on all classes')
+    parser.add_argument('--scaling', type=int, default=10, help='scaling of the finetuning loss')
     parser.add_argument('--ft_class_num', type=int, default=5, help='Finetune Class Number, should be less than 10, = 10 means finetune on all classes')
     parser.add_argument('--ft_ratio', type=float, default=0.5, help='percentage of the finetuned model')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
@@ -68,9 +69,9 @@ def parse_train_args():
         print("revise the unique id to a random number " + str(unique_id))
         args.uid = unique_id
         timestamp = datetime.datetime.now().strftime("%a-%b-%d-%H-%M")
-        save_path = './model_weights/' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
+        save_path = './model_weights/' + 'pt' + str(args.pt_class_num) + 'ft' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-' + args.uid + '-' + timestamp
     else:
-        save_path = './model_weights/' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-'  + str(args.uid)
+        save_path = './model_weights/' + 'pt' + str(args.pt_class_num) + 'ft' + str(args.ft_class_num) + '-' + str(args.ft_ratio) + '-' + args.dataset + '-' + args.preference_type + '-'  + str(args.uid)
 
     if not os.path.exists(save_path):
         os.makedirs(save_path, exist_ok=True)
@@ -131,7 +132,7 @@ def parse_eval_args():
     parser.add_argument('--load_path', type=str, default=None)
 
     # Learning Options
-    parser.add_argument('--epochs', type=int, default=150, help='Max Eval Epochs, this should equal to sum of pretrain_epochs and finetune_epochs')
+    parser.add_argument('--epochs', type=int, default=200, help='Max Eval Epochs, this should equal to sum of pretrain_epochs and finetune_epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--sample_size', type=int, default=None, help='sample size PER CLASS')
 

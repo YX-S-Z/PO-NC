@@ -64,25 +64,32 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
 
     scheduler.step()
 
-def get_preference_weight(args):
+def get_preference_weight(args, stage):
     if args.dataset == "mnist" or "cifar10":
+        pt_class_num = args.pt_class_num
         ft_class_num = args.ft_class_num
         weight = torch.zeros(10)
-        if args.preference_type == "exp":
-            # return a exponential weight of [0, 0, 0, ..., exp(1), exp(2), ..., exp(x)]
-            weight[10-ft_class_num:] = torch.exp(torch.tensor(range(ft_class_num))) * args.ft_scaling
-        elif args.preference_type == "log":
-            # return a exponential weight of [0, 0, 0, ..., 1, log(2)+1, ..., log(x)+1]
-            weight[10-ft_class_num:] = torch.log(torch.tensor(range(ft_class_num))+1)+1.0
-        else:
-            weight[10-ft_class_num:] = torch.ones(ft_class_num) * args.ft_scaling
+
+        if stage == "pretrain":
+            weight[:pt_class_num] = torch.ones(pt_class_num) * args.scaling
+        elif stage == "finetune":
+            if args.preference_type == "exp":
+                # return a exponential weight of [0, 0, 0, ..., exp(1), exp(2), ..., exp(x)]
+                weight[10-ft_class_num:] = torch.exp(torch.tensor(range(ft_class_num))) * args.scaling
+            elif args.preference_type == "log":
+                # return a exponential weight of [0, 0, 0, ..., 1, log(2)+1, ..., log(x)+1]
+                weight[10-ft_class_num:] = torch.log(torch.tensor(range(ft_class_num))+1)+1.0
+            else:
+                weight[10-ft_class_num:] = torch.ones(ft_class_num) * args.scaling
+        else: 
+            sys.exit("Not implemented yet!")
         return weight.to(args.device)
     else:
         sys.exit("Not implemented yet!")
 
 def train(args, model, trainloader):
 
-    criterion = make_criterion(args)
+    criterion = make_criterion(args, preference_weight = get_preference_weight(args, stage="pretrain"))
     optimizer = make_optimizer(args, model)
     scheduler = make_scheduler(args, optimizer)
 
@@ -100,7 +107,7 @@ def train(args, model, trainloader):
     print_and_save('--------------------- Start Finetuning -------------------------------', logfile)
     
     # Set the new critierion for fine-tuning, including new learning rate
-    criterion = make_criterion(args, preference_weight = get_preference_weight(args))
+    criterion = make_criterion(args, preference_weight = get_preference_weight(args, stage="finetune"))
     # optimizer = make_optimizer(args, model)
     scheduler = make_ft_scheduler(args, optimizer)
     for epoch_id in range(args.finetune_epochs):
