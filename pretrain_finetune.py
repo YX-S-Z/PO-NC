@@ -64,7 +64,7 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
 
     scheduler.step()
 
-def get_preferemce_weight(args):
+def get_preference_weight(args):
     if args.dataset == "mnist" or "cifar10":
         ft_class_num = args.ft_class_num
         weight = torch.zeros(10)
@@ -100,7 +100,7 @@ def train(args, model, trainloader):
     print_and_save('--------------------- Start Finetuning -------------------------------', logfile)
     
     # Set the new critierion for fine-tuning, including new learning rate
-    criterion = make_criterion(args, preference_weight = get_preferemce_weight(args))
+    criterion = make_criterion(args, preference_weight = get_preference_weight(args))
     # optimizer = make_optimizer(args, model)
     scheduler = make_ft_scheduler(args, optimizer)
     for epoch_id in range(args.finetune_epochs):
