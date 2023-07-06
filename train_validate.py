@@ -111,7 +111,7 @@ def main():
         info_dict['test_per_class_acc'].append(test_per_class_acc)
 
         print_and_save('[epoch: %d] | train top1: %.4f | train top5: %.4f | test top1: %.4f | test top5: %.4f \n train per class acc: %s \n test per class acc: %s ' %
-                       (i + 1, train_acc1, train_acc5, test_acc1, test_acc5, ['{:.2f}'.format(c.avg) for c in train_per_class_acc], ['{:.2f}'.format(c.avg) for c in test_per_class_acc]), logfile)
+                       (i + 1, train_acc1, train_acc5, test_acc1, test_acc5, ['{:.2f}'.format(c) for c in train_per_class_acc], ['{:.2f}'.format(c) for c in test_per_class_acc]), logfile)
 
     with open(args.save_path + '/info.pkl', 'wb') as f:
         pickle.dump(info_dict, f)
