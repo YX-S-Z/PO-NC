@@ -12,31 +12,6 @@ from pretrain_finetune import train
 import scipy.linalg as scilin
 from validate_NC import FCFeatures, compute_Sigma_W, compute_Sigma_B, compute_info, compute_ETF, compute_W_H_relation, compute_Wh_b_relation
 
-# Added #
-def get_class_acc(args, model, dset, num_classes):
-    class_accs = []
-
-    for c in range(num_classes):
-        top1 = AverageMeter()
-
-        cur_dset = torch.utils.data.Subset(dset, np.where(np.array(dset.targets)==c)[0])
-        cur_loader = torch.utils.data.DataLoader(cur_dset, batch_size=args.batch_size)
-        for batch_idx, (inputs, targets) in enumerate(cur_loader):
-
-            inputs, targets = inputs.to(args.device), targets.to(args.device)
-
-            with torch.no_grad():
-                outputs = model(inputs)
-
-            prec1, prec5 = compute_accuracy(outputs[0].data, targets.data, topk=(1, 5))
-            top1.update(prec1.item(), inputs.size(0))
-        
-        class_accs.append(top1.avg)
-    
-    return class_accs
-# Added over #
-
-
 def main():
 
     # Training part
@@ -50,7 +25,7 @@ def main():
     device = torch.device("cuda:"+str(args.gpu_id) if torch.cuda.is_available() else "cpu")
     args.device = device
 
-    trainset, testset, trainloader, _, num_classes = make_dataset(args.dataset, args.data_dir, args.batch_size, args.sample_size, SOTA=args.SOTA)
+    trainloader, _, num_classes = make_dataset(args.dataset, args.data_dir, args.batch_size, args.sample_size, SOTA=args.SOTA)
     
     if args.model == "MLP":
         model = models.__dict__[args.model](hidden = args.width, depth = args.depth, fc_bias=args.bias, num_classes=num_classes).to(device)
@@ -62,10 +37,10 @@ def main():
     train(args, model, trainloader)
 
     # Validation part
-    # SZ: edited, removed eval args
+    # SZ: July 5, Editing here, testing whether we can remove this
     # args = parse_eval_args()
 
-    trainset, testset, trainloader, testloader, num_classes = make_dataset(args.dataset, args.data_dir, args.batch_size, args.sample_size)
+    trainloader, testloader, num_classes = make_dataset(args.dataset, args.data_dir, args.batch_size, args.sample_size)
 
     fc_features = FCFeatures()
     model.fc.register_forward_pre_hook(fc_features)
@@ -75,7 +50,7 @@ def main():
         'ETF_metric': [],
         'WH_relation_metric': [],
         'Wh_b_relation_metric': [],
-        'W': [],
+        'W': [], 
         'b': [],
         'H': [],
         'mu_G_train': [],
@@ -83,8 +58,7 @@ def main():
         'train_acc1': [],
         'train_acc5': [],
         'test_acc1': [],
-        'test_acc5': [],
-        'class_accs': [], # Added
+        'test_acc5': []
     }
 
     logfile = open('%s/train_log.txt' % (args.save_path), 'a')
@@ -101,11 +75,6 @@ def main():
 
         mu_G_train, mu_c_dict_train, train_acc1, train_acc5 = compute_info(args, model, fc_features, trainloader, isTrain=True)
         mu_G_test, mu_c_dict_test, test_acc1, test_acc5 = compute_info(args, model, fc_features, testloader, isTrain=False)
-
-        # Added #
-        cur_class_accs = get_class_acc(args, model, testset, num_classes)
-        info_dict['class_accs'].append(cur_class_accs)
-        # Added over #
 
         Sigma_W = compute_Sigma_W(args, model, fc_features, mu_c_dict_train, trainloader, isTrain=True)
         # Sigma_W_test_norm = compute_Sigma_W(args, model, fc_features, mu_c_dict_train, testloader, isTrain=False)
@@ -142,7 +111,6 @@ def main():
 
     with open(args.save_path + '/info.pkl', 'wb') as f:
         pickle.dump(info_dict, f)
-
 
 
 
