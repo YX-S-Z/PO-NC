@@ -109,6 +109,6 @@ def make_dataset(dataset_name, data_dir, batch_size=128, sample_size=None, SOTA=
 
     testloader = DataLoader(testset, batch_size=batch_size, shuffle=False, num_workers=4)
 
-    return trainloader, testloader, num_classes
+    return trainset, testset, trainloader, testloader, num_classes
 
 
