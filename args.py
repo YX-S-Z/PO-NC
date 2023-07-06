@@ -62,6 +62,9 @@ def parse_train_args():
     # Specifying the preference weight model
     parser.add_argument('--preference_type', type=str, default='uniform', help='preference weight type, can be quadratic, exp, or log')
 
+    # Specifying save and validate frequency
+    parser.add_argument('--save_freq', type=int, default=5, help='save frequency')
+
     args = parser.parse_args()
 
     if args.uid is None:

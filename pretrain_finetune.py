@@ -104,7 +104,8 @@ def train(args, model, trainloader):
     for epoch_id in range(args.pretrain_epochs):
 
         trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler, logfile)
-        torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
+        if (epoch_id + 1) % args.save_freq == 1:
+            torch.save(model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + 1).zfill(3) + ".pth")
     
     pretrained_model = copy.deepcopy(model)
 
@@ -123,8 +124,8 @@ def train(args, model, trainloader):
         for param_ft, param_pt in zip(finetuned_model.parameters(), pretrained_model.parameters()):
             interpolated_param = args.ft_ratio * param_ft + (1 - args.ft_ratio) * param_pt
             param_ft.data.copy_(interpolated_param.data)
-        
-        torch.save(finetuned_model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + args.pretrain_epochs + 1).zfill(3) + ".pth")
+        if (epoch_id + args.pretrain_epochs + 1) % args.save_freq == 1:
+            torch.save(finetuned_model.state_dict(), args.save_path + "/epoch_" + str(epoch_id + args.pretrain_epochs + 1).zfill(3) + ".pth")
     
     logfile.close()
 

@@ -65,7 +65,9 @@ def main():
 
     logfile = open('%s/train_log.txt' % (args.save_path), 'a')
     for i in range(args.pretrain_epochs + args.finetune_epochs):
-
+        # SZ: edited, only evaluate the saved model
+        if (i + 1) % args.save_freq != 1:
+            continue
         model.load_state_dict(torch.load(args.save_path + '/epoch_' + str(i + 1).zfill(3) + '.pth'))
         model.eval()
 
