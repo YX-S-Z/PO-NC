@@ -32,7 +32,10 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
-
+    per_class_loss = []
+    for i in range(10):
+        per_class_loss.append(AverageMeter())
+    # need to change this to num_class later
     print_and_save('\nTraining Epoch: [%d | %d] LR: %f' % (epoch_id + 1, args.pretrain_epochs + args.finetune_epochs, scheduler.get_last_lr()[-1]), logfile)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
 
@@ -53,14 +56,15 @@ def trainer(args, model, trainloader, epoch_id, criterion, optimizer, scheduler,
         # measure accuracy and record loss
         model.eval()
         outputs = model(inputs)
-        prec1, prec5 = compute_accuracy(outputs[0].detach().data, targets.detach().data, topk=(1, 5))
+        result = compute_accuracy(outputs[0].detach().data, targets.detach().data, topk=(1, 5))
         losses.update(loss.item(), inputs.size(0))
-        top1.update(prec1.item(), inputs.size(0))
-        top5.update(prec5.item(), inputs.size(0))
-
+        top1.update(result[0].item(), inputs.size(0))
+        top5.update(result[1].item(), inputs.size(0))
+        for i in range(10):
+            per_class_loss[i].update(result[2+i].item(), inputs.size(0))
         if batch_idx % 10 == 0:
-            print_and_save('[epoch: %d] (%d/%d) | Loss: %.4f | top1: %.4f | top5: %.4f ' %
-                           (epoch_id + 1, batch_idx + 1, len(trainloader), losses.avg, top1.avg, top5.avg), logfile)
+            print_and_save('[epoch: %d] (%d/%d) | Loss: %.4f | top1: %.4f | top5: %.4f \n per class acc: %s' %
+                           (epoch_id + 1, batch_idx + 1, len(trainloader), losses.avg, top1.avg, top5.avg, ['{:.2f}'.format(c.avg) for c in per_class_loss]), logfile)
 
     scheduler.step()
 

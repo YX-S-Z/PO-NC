@@ -33,6 +33,10 @@ def compute_info(args, model, fc_features, dataloader, isTrain=True):
     mu_c_dict = dict()
     top1 = AverageMeter()
     top5 = AverageMeter()
+    per_class_loss = []
+    for i in range(10):
+        per_class_loss.append(AverageMeter())
+    # need to change this to num_class later
     for batch_idx, (inputs, targets) in enumerate(dataloader):
 
         inputs, targets = inputs.to(args.device), targets.to(args.device)
@@ -51,11 +55,13 @@ def compute_info(args, model, fc_features, dataloader, isTrain=True):
                 mu_c_dict[y] = features[b, :]
             else:
                 mu_c_dict[y] += features[b, :]
-
-        prec1, prec5 = compute_accuracy(outputs[0].data, targets.data, topk=(1, 5))
-        top1.update(prec1.item(), inputs.size(0))
-        top5.update(prec5.item(), inputs.size(0))
-
+        # SZ: editing here, changing it to compute_accuracy
+        result = compute_accuracy(outputs[0].data, targets.data, topk=(1, 5))
+        top1.update(result[0].item(), inputs.size(0))
+        top5.update(result[1].item(), inputs.size(0))
+    for i in range(10):
+        per_class_loss[i].update(result[2+i].item(), inputs.size(0))
+            
     if args.dataset == 'mnist':
         if isTrain:
             mu_G /= sum(MNIST_TRAIN_SAMPLES)
@@ -75,7 +81,7 @@ def compute_info(args, model, fc_features, dataloader, isTrain=True):
             for i in range(len(CIFAR10_TEST_SAMPLES)):
                 mu_c_dict[i] /= CIFAR10_TEST_SAMPLES[i]
 
-    return mu_G, mu_c_dict, top1.avg, top5.avg
+    return mu_G, mu_c_dict, top1.avg, top5.avg, [c.avg for c in per_class_loss]
 
 
 def compute_Sigma_W(args, model, fc_features, mu_c_dict, dataloader, isTrain=True):

@@ -57,8 +57,10 @@ def main():
         # 'mu_G_test': [],
         'train_acc1': [],
         'train_acc5': [],
+        'train_per_class_acc': [],
         'test_acc1': [],
-        'test_acc5': []
+        'test_acc5': [], 
+        'test_per_class_acc': []
     }
 
     logfile = open('%s/train_log.txt' % (args.save_path), 'a')
@@ -73,8 +75,8 @@ def main():
             if 'fc.bias' in n:
                 b = p
 
-        mu_G_train, mu_c_dict_train, train_acc1, train_acc5 = compute_info(args, model, fc_features, trainloader, isTrain=True)
-        mu_G_test, mu_c_dict_test, test_acc1, test_acc5 = compute_info(args, model, fc_features, testloader, isTrain=False)
+        mu_G_train, mu_c_dict_train, train_acc1, train_acc5, train_per_class_acc = compute_info(args, model, fc_features, trainloader, isTrain=True)
+        mu_G_test, mu_c_dict_test, test_acc1, test_acc5, test_per_class_acc = compute_info(args, model, fc_features, testloader, isTrain=False)
 
         Sigma_W = compute_Sigma_W(args, model, fc_features, mu_c_dict_train, trainloader, isTrain=True)
         # Sigma_W_test_norm = compute_Sigma_W(args, model, fc_features, mu_c_dict_train, testloader, isTrain=False)
@@ -103,11 +105,13 @@ def main():
 
         info_dict['train_acc1'].append(train_acc1)
         info_dict['train_acc5'].append(train_acc5)
+        info_dict['train_per_class_acc'].append(train_per_class_acc)
         info_dict['test_acc1'].append(test_acc1)
         info_dict['test_acc5'].append(test_acc5)
+        info_dict['test_per_class_acc'].append(test_per_class_acc)
 
-        print_and_save('[epoch: %d] | train top1: %.4f | train top5: %.4f | test top1: %.4f | test top5: %.4f ' %
-                       (i + 1, train_acc1, train_acc5, test_acc1, test_acc5), logfile)
+        print_and_save('[epoch: %d] | train top1: %.4f | train top5: %.4f | test top1: %.4f | test top5: %.4f \n train per class acc: %s \n test per class acc: %s ' %
+                       (i + 1, train_acc1, train_acc5, test_acc1, test_acc5, ['{:.2f}'.format(c.avg) for c in train_per_class_acc], ['{:.2f}'.format(c.avg) for c in test_per_class_acc]), logfile)
 
     with open(args.save_path + '/info.pkl', 'wb') as f:
         pickle.dump(info_dict, f)
