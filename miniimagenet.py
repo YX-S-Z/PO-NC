@@ -88,7 +88,7 @@ class MiniImagenet(Dataset):
         return "Processing raw data done!"
                 
     def __len__(self):
-        return len(self.index_data)
+        return len(self.data)
 
     def __getitem__(self, index):
         """

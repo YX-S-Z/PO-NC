@@ -140,7 +140,7 @@ def compute_accuracy(output, target, topk=(1,)):
         correct_k = correct[:k].reshape(-1).float().sum(0)
         res.append(correct_k.mul_(100.0 / batch_size))
     
-    for label in range(10):
+    for label in range(output.shape[1]): # change 10 to output.shape[1]
         per_class_correct = correct[:1,target == label].reshape(-1).float().sum(0)
         res.append(per_class_correct.mul_(100.0 / correct[:1,target == label].shape[1]))
     # SZ Updated Jul 5, res is a 12 dimensional vector, where the remaining 10 dims are the per-class accuracy
